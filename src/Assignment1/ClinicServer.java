@@ -157,8 +157,6 @@ public class ClinicServer {
 			        	  		return recordID+"'s status date is changed to "+((NurseRecord)record).getStatusDate();   
 						   }
 					   }
-				
-					   
 				   }
 			   }
 		}
