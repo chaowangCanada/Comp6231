@@ -5,13 +5,13 @@ import java.util.Date;
 
 import Assignment1.PublicParamters.*;
 
-public class NurseRecord extends Record{
+public class StudentRecord extends Record{
 
 	private Designation designation;
 	private Status status;
 	private String statusDate;
 
-	public NurseRecord(String firstName, String lastName, Designation designa, Status stat, String date) {
+	public StudentRecord(String firstName, String lastName, Designation designa, Status stat, String date) {
 		super(firstName, lastName);
 		this.recordID = "NR"+Integer.toString(Record.baseID++);
         this.statusDate = date;
@@ -19,12 +19,12 @@ public class NurseRecord extends Record{
         this.status = stat;
 	}
 	
-	public NurseRecord(String firstName, String lastName) {
+	public StudentRecord(String firstName, String lastName) {
 		super(firstName, lastName);
 		this.recordID = "NR"+Integer.toString(Record.baseID++);
 	}
 
-	public NurseRecord() {
+	public StudentRecord() {
 		this("N/A", "N/A");
 	}
 

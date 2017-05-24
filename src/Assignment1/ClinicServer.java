@@ -28,7 +28,7 @@ public class ClinicServer {
 	public String createDRecord(String firstName, String lastName, String address, 
 							  String phone, Specialization special, Location loc) throws IOException{
 		this.writeToLog(location.toString() + " creates Doctor record.");
-		Record docRecord = new DoctorRecord(firstName, lastName, address, phone, special, loc);
+		Record docRecord = new TeacherRecord(firstName, lastName, address, phone, special, loc);
 		if(recordData.get(lastName.charAt(0)) == null){
 			recordData.put(lastName.charAt(0), new LinkedList<Record>());
 		}
@@ -44,7 +44,7 @@ public class ClinicServer {
 	public String createNRecord(String firstName, String lastName, Designation designation, 
 								Status status, String statusdate) throws IOException{
 		this.writeToLog(location.toString() + " creates Doctor record.");
-		Record nurRecord = new NurseRecord(firstName, lastName, designation, status, statusdate);
+		Record nurRecord = new StudentRecord(firstName, lastName, designation, status, statusdate);
 		if(recordData.get(lastName.charAt(0)) == null){
 			recordData.put(lastName.charAt(0), new LinkedList<Record>());
 		}
@@ -130,31 +130,30 @@ public class ClinicServer {
 				   if(record.getRecordID().equalsIgnoreCase(recordID)){
 					   if(RecordInit == 'd'){
 						   if(fieldName.equalsIgnoreCase("address")){
-							   ((DoctorRecord)record).setAddress(newValue);
-			        	  		return recordID+"'s address is changed to "+((DoctorRecord)record).getAddress();
+							   ((TeacherRecord)record).setAddress(newValue);
+			        	  		return recordID+"'s address is changed to "+((TeacherRecord)record).getAddress();
 						   } 
 						   else if(fieldName.equalsIgnoreCase("phone")){
-							   ((DoctorRecord)record).setPhone(newValue);
-			        	  		return recordID+"'s phone is changed to "+((DoctorRecord)record).getPhone();
+							   ((TeacherRecord)record).setPhone(newValue);
+			        	  		return recordID+"'s phone is changed to "+((TeacherRecord)record).getPhone();
 						   }
 						   else if(fieldName.equalsIgnoreCase("location")){
-							   ((DoctorRecord)record).setLocation(newValue);
-			        	  		return recordID+"'s location is changed to "+((DoctorRecord)record).getLocation().toString();
+							   ((TeacherRecord)record).setLocation(newValue);
+			        	  		return recordID+"'s location is changed to "+((TeacherRecord)record).getLocation().toString();
 						   }
 					   } 
 					   else if(RecordInit == 'n'){
-						   NurseRecord nRecord = (NurseRecord)record;
 						   if(fieldName.equalsIgnoreCase("designation")){
-							   ((NurseRecord)record).setDesignation(newValue);
-			        	  		return recordID+"'s designation is changed to "+((NurseRecord)record).getDesignation().toString();
+							   ((StudentRecord)record).setDesignation(newValue);
+			        	  		return recordID+"'s designation is changed to "+((StudentRecord)record).getDesignation().toString();
 						   } 
 						   else if(fieldName.equalsIgnoreCase("status")){
-							   ((NurseRecord)record).setStatus(newValue);
-			        	  		return recordID+"'s status is changed to "+((NurseRecord)record).getStatus().toString();
+							   ((StudentRecord)record).setStatus(newValue);
+			        	  		return recordID+"'s status is changed to "+((StudentRecord)record).getStatus().toString();
 						   }
 						   else if(fieldName.equalsIgnoreCase("status date")){
-							   ((NurseRecord)record).setStatusDate(newValue);
-			        	  		return recordID+"'s status date is changed to "+((NurseRecord)record).getStatusDate();   
+							   ((StudentRecord)record).setStatusDate(newValue);
+			        	  		return recordID+"'s status date is changed to "+((StudentRecord)record).getStatusDate();   
 						   }
 					   }
 				   }

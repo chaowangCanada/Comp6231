@@ -2,7 +2,7 @@ package Assignment1;
 
 import Assignment1.PublicParamters.*;
 
-public class DoctorRecord extends Record{
+public class TeacherRecord extends Record{
 
 	private String address;
 	private String phone;
@@ -10,16 +10,16 @@ public class DoctorRecord extends Record{
 	private Location location;
 	
 	
-	public DoctorRecord(String firstName, String lastName) {
+	public TeacherRecord(String firstName, String lastName) {
 		super(firstName, lastName);
 		this.recordID = "DR"+Integer.toString(Record.baseID++);
 	}
 	
-	public DoctorRecord() {
+	public TeacherRecord() {
 		this("N/A", "N/A");
 	}
 
-	public DoctorRecord(String firstName, String lastName, String address, String phone,Specialization special, Location loc) {
+	public TeacherRecord(String firstName, String lastName, String address, String phone,Specialization special, Location loc) {
 		super(firstName, lastName);
 		this.recordID = "DR"+Integer.toString(Record.baseID++);
         this.address = address;
