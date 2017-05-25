@@ -3,6 +3,11 @@ package Assignment1;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -10,98 +15,104 @@ import java.util.Map.Entry;
 
 import Assignment1.PublicParamters.*;
 
-public class ClinicServer {
-
-	private File log = null;
+public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{	
+	
+	private File logFile = null;
 	private HashMap<Character, LinkedList<Record>> recordData;
 	private Location location;
-	private int drCount = 0, nrCount = 0; 
+	private int TRCount = 0, SRCount = 0; 
 	
-	public ClinicServer(String loc)throws IOException{
-		location = Location.valueOf(loc);
-		log = new File(location+"_log.txt");
-		if(! log.exists())
-			log.createNewFile();
+	public ClinicServer(Location loc)throws IOException{
+		super();
+		location = loc;
+		logFile = new File(location+"_log.txt");
+		if(! logFile.exists())
+			logFile.createNewFile();
 		recordData = new HashMap<Character, LinkedList<Record>>();
 	}
 	
-	public String createDRecord(String firstName, String lastName, String address, 
-							  String phone, Specialization special, Location loc) throws IOException{
-		this.writeToLog(location.toString() + " creates Doctor record.");
-		Record docRecord = new TeacherRecord(firstName, lastName, address, phone, special, loc);
+	public void exportServer() throws Exception {
+		Registry registry= LocateRegistry.createRegistry(location.getPort());
+		//Remote obj = UnicastRemoteObject.exportObject(this, location.getPort());
+		registry.bind(location.toString(), this);
+	}
+		
+	public String createTRecord(String firstName, String lastName, String adTRess, 
+							  String phone, Specialization special, Location loc) throws IOException, RemoteException{
+		this.writeToLog(location.toString() + " creates Teacher record.");
+		Record docRecord = new TeacherRecord(firstName, lastName, adTRess, phone, special, loc);
 		if(recordData.get(lastName.charAt(0)) == null){
 			recordData.put(lastName.charAt(0), new LinkedList<Record>());
 		}
 		if(recordData.get(lastName.charAt(0)).add(docRecord)){
-			String output = "Sucessfully write Doctor record. Record ID: "+docRecord.getRecordID();
+			String output = "Sucessfully write Teacher record. Record ID: "+docRecord.getRecordID();
 			this.writeToLog(output);
-			drCount++;
+			TRCount++;
 			return output;
 		}
-		return "failed to write Doctor Record";
+		return "failed to write Teacher Record";
 	}
 	
-	public String createNRecord(String firstName, String lastName, Designation designation, 
-								Status status, String statusdate) throws IOException{
-		this.writeToLog(location.toString() + " creates Doctor record.");
+	public String createSRecord(String firstName, String lastName, Designation designation, 
+								Status status, String statusdate) throws IOException, RemoteException{
+		this.writeToLog(location.toString() + " creates Teacher record.");
 		Record nurRecord = new StudentRecord(firstName, lastName, designation, status, statusdate);
 		if(recordData.get(lastName.charAt(0)) == null){
 			recordData.put(lastName.charAt(0), new LinkedList<Record>());
 		}
 		if(recordData.get(lastName.charAt(0)).add(nurRecord)){
-			String output = "Sucessfully write Doctor record. Record ID: "+nurRecord.getRecordID();
+			String output = "Sucessfully write Teacher record. Record ID: "+nurRecord.getRecordID();
 			this.writeToLog(output);
-			nrCount++;
+			SRCount++;
 			return output;
 		}
-		return "failed to write Nurse Record";
+		return "failed to write Student Record";
 	}
 	
-	public String getRecordCounts(String recordType) throws IOException{
+	public String getRecordCounts(String recordType) throws IOException, RemoteException{
 		this.writeToLog("try to count all record for "+recordType);
 		String output = new String();
-		if(recordType.equalsIgnoreCase("DR")){
-			output += this.location.toString() + " " + drCount + ",";
-			for(ClinicServer server : ManagerServer.serverList){
+		if(recordType.equalsIgnoreCase("TR")){
+			output += this.location.toString() + " " + TRCount + ",";
+			for(ClinicServer server : ServerManageSystem.serverList){
 				if(server.getLocation() !=this.getLocation()){
-					output += server.getLocation().toString() + " " + server.getDrCount() + ",";
+					output += server.getLocation().toString() + " " + server.getTRCount() + ",";
 				}
 			}
 		}
-		else if(recordType.equalsIgnoreCase("NR")){
-			output += this.location.toString() + " " + nrCount + ",";
-			for(ClinicServer server : ManagerServer.serverList){
+		else if(recordType.equalsIgnoreCase("SR")){
+			output += this.location.toString() + " " + SRCount + ",";
+			for(ClinicServer server : ServerManageSystem.serverList){
 				if(server.getLocation() !=this.getLocation()){
-					output += server.getLocation().toString() + " " + server.getNrCount() + ",";
+					output += server.getLocation().toString() + " " + server.getSRCount() + ",";
 				}
 			}
 		}
 		else{
-			output += this.location.toString() + " " + (nrCount+drCount) + ",";
-			for(ClinicServer server : ManagerServer.serverList){
+			output += this.location.toString() + " " + (SRCount+TRCount) + ",";
+			for(ClinicServer server : ServerManageSystem.serverList){
 				if(server.getLocation() !=this.getLocation()){
-					output += server.getLocation().toString() + " " + (server.getNrCount()+server.getDrCount()) + ",";
+					output += server.getLocation().toString() + " " + (server.getSRCount()+server.getTRCount()) + ",";
 				}
 			}
 		}
 		return output;
-
 	}
 	
 	
-	public String EditRecord(String recordID, String fieldName, String newValue) throws IOException{
+	public String EditRecord(String recordID, String fieldName, String newValue) throws IOException, RemoteException{
 		this.writeToLog("try to edit record for "+recordID);
 		String output = new String();
 
-		if(recordID.substring(0,2).equalsIgnoreCase("DR")){
-			if(fieldName.equalsIgnoreCase("address")||
+		if(recordID.substring(0,2).equalsIgnoreCase("TR")){
+			if(fieldName.equalsIgnoreCase("adTRess")||
 					fieldName.equalsIgnoreCase("phone")||
 					fieldName.equalsIgnoreCase("location")){
 				output= traverseToEdit(recordID, fieldName, newValue, 'd');
 				this.writeToLog(output);
 			}
 		} 
-		else if(recordID.substring(0,2).equalsIgnoreCase("NR")){
+		else if(recordID.substring(0,2).equalsIgnoreCase("SR")){
 			if(fieldName.equalsIgnoreCase("designation")||
 					fieldName.equalsIgnoreCase("status")||
 					fieldName.equalsIgnoreCase("statusDate")){
@@ -129,9 +140,9 @@ public class ClinicServer {
 				   Record record = (Record) listIt.next();
 				   if(record.getRecordID().equalsIgnoreCase(recordID)){
 					   if(RecordInit == 'd'){
-						   if(fieldName.equalsIgnoreCase("address")){
+						   if(fieldName.equalsIgnoreCase("adTRess")){
 							   ((TeacherRecord)record).setAddress(newValue);
-			        	  		return recordID+"'s address is changed to "+((TeacherRecord)record).getAddress();
+			        	  		return recordID+"'s adTRess is changed to "+((TeacherRecord)record).getAddress();
 						   } 
 						   else if(fieldName.equalsIgnoreCase("phone")){
 							   ((TeacherRecord)record).setPhone(newValue);
@@ -163,19 +174,19 @@ public class ClinicServer {
 		return null;
 	}
 
-	public void writeToLog(String str) throws IOException{
-		 FileWriter writer = new FileWriter(log,true);
+	public synchronized void writeToLog(String str) throws IOException{
+		 FileWriter writer = new FileWriter(logFile,true);
 		 writer.write(str+"\n");
 		 writer.flush();
 		 writer.close();
 	}
 
-	public File getLog() {
-		return log;
+	public File getLogFile() {
+		return logFile;
 	}
 
 	public void setLog(File log) {
-		this.log = log;
+		this.logFile = log;
 	}
 
 	public HashMap<Character, LinkedList<Record>> getRecordData() {
@@ -194,20 +205,20 @@ public class ClinicServer {
 		this.location = location;
 	}
 
-	public int getDrCount() {
-		return drCount;
+	public int getTRCount() {
+		return TRCount;
 	}
 
-	public void setDrCount(int drCount) {
-		this.drCount = drCount;
+	public void setTRCount(int TRCount) {
+		this.TRCount = TRCount;
 	}
 
-	public int getNrCount() {
-		return nrCount;
+	public int getSRCount() {
+		return SRCount;
 	}
 
-	public void setNrCount(int nrCount) {
-		this.nrCount = nrCount;
+	public void setSRCount(int SRCount) {
+		this.SRCount = SRCount;
 	}
 	
 	

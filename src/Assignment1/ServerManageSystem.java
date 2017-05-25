@@ -2,21 +2,20 @@ package Assignment1;
 
 import java.util.ArrayList;
 
-public class ManagerServer {
+import Assignment1.PublicParamters.Location;
 
-	public static ArrayList<ClinicServer> serverList;
+public class ServerManageSystem {
+
+	public static ArrayList<ClinicServer> serverList = new ArrayList<ClinicServer>();
 	
-
-	static int SERVER_PORT_MTL = 7000;
-	static int SERVER_PORT_LVL = 7001;
-	static int SERVER_PORT_DDO = 7002;
 	
 	public static void main(String args[]){
 		try{
 			
-			ClinicServer mtl = new ClinicServer("MTL");
-			ClinicServer lvl = new ClinicServer("LVL");
-			ClinicServer ddo = new ClinicServer("DDO");
+			ClinicServer mtl = new ClinicServer(Location.MTL);
+			ClinicServer lvl = new ClinicServer(Location.LVL);
+			ClinicServer ddo = new ClinicServer(Location.DDO);
+			
 			serverList.add(mtl);
 			serverList.add(lvl);
 			serverList.add(ddo);
