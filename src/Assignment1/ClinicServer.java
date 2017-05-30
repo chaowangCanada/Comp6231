@@ -54,11 +54,6 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 				if(request.getData() != null && request.getData().toString().equals("RecordCounts")){
 					this.writeToLog("New thread starts for : "+request.getData().toString());
 					new thread(aSocket, request, this);
-					String str = request.getData().toString();
-					String temp=this.getLocalServerCounts(str);
-					byte[] m = temp.getBytes();
-					DatagramPacket reply = new DatagramPacket(m, temp.length(), request.getAddress() , request.getPort());
-					aSocket.send(reply);
 				}
 			}
 		}catch (SocketException e ){System.out.println("Socket"+ e.getMessage());
@@ -219,7 +214,14 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 						   }
 						   else if(fieldName.equalsIgnoreCase("location")){
 							   ((TeacherRecord)record).setLocation(newValue);
-			        	  		return recordID+"'s location is changed to "+((TeacherRecord)record).getLocation().toString();
+			        	  		String output = recordID+"'s location is changed to "+((TeacherRecord)record).getLocation().toString();
+			        			for(ClinicServer server : ServerManageSystem.serverList){
+			        				if(server.getLocation() == Location.valueOf(newValue)){
+					        	  		requestCreateRecord(server, record);
+			        				}
+			        			}
+			        	  		listIt.remove();
+			        	  		return output;
 						   }
 					   } 
 					   else if(RecordInit == 'n'){
@@ -243,6 +245,37 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		return null;
 	}
 
+	private void requestCreateRecord(ClinicServer server, Record record) {
+
+		DatagramSocket aSocket = null;
+		
+		try{
+			aSocket = new DatagramSocket();
+			byte[] message = "CreateRecord".getBytes();
+			InetAddress aHost = InetAddress.getByName("localhost");
+			int serverPort = server.getLocation().getPort();
+			DatagramPacket request = new DatagramPacket(message, message.length, aHost , serverPort);
+			aSocket.send(request);
+			
+			byte[] buffer = new byte[1000];
+			DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
+			aSocket.receive(reply);
+
+			System.out.println( reply.getData().toString());
+		}
+		catch (SocketException e){
+			System.out.println("Socket"+ e.getMessage());
+		}
+		catch (IOException e){
+			System.out.println("IO: "+e.getMessage());
+		}
+		finally {
+			if(aSocket != null ) 
+				aSocket.close();
+		}
+		
+	}
+	
 	public synchronized void writeToLog(String str) throws IOException{
 		 FileWriter writer = new FileWriter(logFile,true);
 		 writer.write(str+"\n");
