@@ -15,7 +15,7 @@ public interface DCMSInterface extends Remote{
 	public String createSRecord(String firstName, String lastName, Designation designation, 
 			Status status, String statusdate) throws IOException, RemoteException;
 	
-	public String getRecordCounts(String recordType) throws IOException, RemoteException;
+	public String getRecordCounts() throws IOException, RemoteException;
 	
 	public String EditRecord(String recordID, String fieldName, String newValue) throws IOException, RemoteException;	
 

@@ -3,6 +3,10 @@ package Assignment1;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -15,12 +19,13 @@ import java.util.Map.Entry;
 
 import Assignment1.PublicParamters.*;
 
+
 public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{	
 	
 	private File logFile = null;
 	private HashMap<Character, LinkedList<Record>> recordData;
 	private Location location;
-	private int TRCount = 0, SRCount = 0; 
+	private int recordCount = 0; 
 	
 	public ClinicServer(Location loc)throws IOException{
 		super();
@@ -33,8 +38,59 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 	
 	public void exportServer() throws Exception {
 		Registry registry= LocateRegistry.createRegistry(location.getPort());
-		//Remote obj = UnicastRemoteObject.exportObject(this, location.getPort());
 		registry.bind(location.toString(), this);
+	}
+	
+
+	public void openUDPListener(){
+		DatagramSocket aSocket = null;
+		
+		try{
+			aSocket  = new DatagramSocket(this.location.getPort());
+			byte[] buffer = new byte[1000];
+			while(true){
+				DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+				aSocket.receive(request);
+				if(request.getData() != null && request.getData().toString().equals("RecordCounts")){
+					this.writeToLog("New thread starts for : "+request.getData().toString());
+					new thread(aSocket, request, this);
+					String str = request.getData().toString();
+					String temp=this.getLocalServerCounts(str);
+					byte[] m = temp.getBytes();
+					DatagramPacket reply = new DatagramPacket(m, temp.length(), request.getAddress() , request.getPort());
+					aSocket.send(reply);
+				}
+			}
+		}catch (SocketException e ){System.out.println("Socket"+ e.getMessage());
+		}catch (IOException e) {System.out.println("IO"+e.getMessage());
+		}finally { if (aSocket !=null ) aSocket.close();}
+	}
+	
+	static class thread extends Thread{
+		DatagramSocket socket = null;
+		DatagramPacket request = null;
+		ClinicServer server = null;
+		
+		String recordCount ;
+		
+		public thread(DatagramSocket aSocket, DatagramPacket aRequest, ClinicServer threadServer)    {
+			socket=aSocket;
+			request = aRequest;
+			server = threadServer;
+			if(request.getData().toString().equals("RecordCounts"))
+					recordCount = server.getLocation().toString() + " " + server.recordCount + ",";
+			this.start();
+		}
+		
+		@Override
+		public void run() {
+			try {
+				DatagramPacket reply = new DatagramPacket(recordCount.getBytes(),recordCount.getBytes().length, request.getAddress(), request.getPort()); 
+				socket.send(reply);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 		
 	public String createTRecord(String firstName, String lastName, String adTRess, 
@@ -47,7 +103,7 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		if(recordData.get(lastName.charAt(0)).add(docRecord)){
 			String output = "Sucessfully write Teacher record. Record ID: "+docRecord.getRecordID();
 			this.writeToLog(output);
-			TRCount++;
+			recordCount++;
 			return output;
 		}
 		return "failed to write Teacher Record";
@@ -63,42 +119,55 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		if(recordData.get(lastName.charAt(0)).add(nurRecord)){
 			String output = "Sucessfully write Teacher record. Record ID: "+nurRecord.getRecordID();
 			this.writeToLog(output);
-			SRCount++;
+			recordCount++;
 			return output;
 		}
 		return "failed to write Student Record";
 	}
 	
-	public String getRecordCounts(String recordType) throws IOException, RemoteException{
-		this.writeToLog("try to count all record for "+recordType);
-		String output = new String();
-		if(recordType.equalsIgnoreCase("TR")){
-			output += this.location.toString() + " " + TRCount + ",";
-			for(ClinicServer server : ServerManageSystem.serverList){
-				if(server.getLocation() !=this.getLocation()){
-					output += server.getLocation().toString() + " " + server.getTRCount() + ",";
-				}
-			}
-		}
-		else if(recordType.equalsIgnoreCase("SR")){
-			output += this.location.toString() + " " + SRCount + ",";
-			for(ClinicServer server : ServerManageSystem.serverList){
-				if(server.getLocation() !=this.getLocation()){
-					output += server.getLocation().toString() + " " + server.getSRCount() + ",";
-				}
-			}
-		}
-		else{
-			output += this.location.toString() + " " + (SRCount+TRCount) + ",";
-			for(ClinicServer server : ServerManageSystem.serverList){
-				if(server.getLocation() !=this.getLocation()){
-					output += server.getLocation().toString() + " " + (server.getSRCount()+server.getTRCount()) + ",";
-				}
+	public String getRecordCounts() throws IOException, RemoteException{
+		this.writeToLog("try to count all record at "+ location.toString());
+		String output = this.location.toString() + " " + recordCount + ", ";
+		for(ClinicServer server : ServerManageSystem.serverList){
+			if(server.getLocation() !=this.getLocation()){
+				output += server.getLocation().toString() + " " + requestRecordCounts(server) + ",";
 			}
 		}
 		return output;
 	}
 	
+	
+	public String requestRecordCounts(ClinicServer server){
+		DatagramSocket aSocket = null;
+		
+		try{
+			aSocket = new DatagramSocket();
+			byte[] message = "RecordCounts".getBytes();
+			InetAddress aHost = InetAddress.getByName("localhost");
+			int serverPort = server.getLocation().getPort();
+			DatagramPacket request = new DatagramPacket(message, message.length, aHost , serverPort);
+			aSocket.send(request);
+			
+			byte[] buffer = new byte[1000];
+			DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
+			aSocket.receive(reply);
+
+			String str = reply.getData().toString();
+			return str;
+		}
+		catch (SocketException e){
+			System.out.println("Socket"+ e.getMessage());
+		}
+		catch (IOException e){
+			System.out.println("IO: "+e.getMessage());
+		}
+		finally {
+			if(aSocket != null ) 
+				aSocket.close();
+		}
+		return null;
+		
+	}
 	
 	public String EditRecord(String recordID, String fieldName, String newValue) throws IOException, RemoteException{
 		this.writeToLog("try to edit record for "+recordID);
@@ -205,21 +274,14 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		this.location = location;
 	}
 
-	public int getTRCount() {
-		return TRCount;
+	public int getRecordCount() {
+		return recordCount;
 	}
 
-	public void setTRCount(int TRCount) {
-		this.TRCount = TRCount;
+	public void setRecordCount(int recordCount) {
+		this.recordCount = recordCount;
 	}
 
-	public int getSRCount() {
-		return SRCount;
-	}
-
-	public void setSRCount(int SRCount) {
-		this.SRCount = SRCount;
-	}
 	
 	
 }
