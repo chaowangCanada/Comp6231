@@ -30,10 +30,10 @@ public class Record {
 	}
 
 	public String getRecordID(){
-	    if(this instanceof DoctorRecord) 
-	    	((DoctorRecord)this).getRecordID();
-	    if (this instanceof NurseRecord)
-	    	((NurseRecord)this).getRecordID();
+	    if(this instanceof TeacherRecord) 
+	    	((TeacherRecord)this).getRecordID();
+	    if (this instanceof StudentRecord)
+	    	((StudentRecord)this).getRecordID();
 
 		return "";
 	}

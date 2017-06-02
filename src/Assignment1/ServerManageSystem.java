@@ -20,15 +20,16 @@ public class ServerManageSystem {
 			serverList.add(lvl);
 			serverList.add(ddo);
 
+			// create registry, RMI binding
 			mtl.exportServer();
 			lvl.exportServer();
 			ddo.exportServer();
 
 			System.out.println("Servers are up and running ");
+			// UDP waiting request thread
 			mtl.openUDPListener();
 			lvl.openUDPListener();
 			ddo.openUDPListener();
-
 		}
 		catch (Exception e){
 			e.printStackTrace();

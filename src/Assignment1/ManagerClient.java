@@ -4,10 +4,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.rmi.Naming;
-import java.rmi.RMISecurityManager;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -21,13 +22,15 @@ public class ManagerClient {
 	protected static int managerIDbase =1000;
 	private String managerID;	
 	private File log = null;
+	private Registry registry;
+	private DCMSInterface intrfc;
 	
-	public ManagerClient(Location l) throws IOException{
+	public ManagerClient(Location l) throws IOException, NotBoundException{
 		managerID = l.toString() + managerIDbase;
 		log = new File(managerID+".txt");
 		if(! log.exists())
 			log.createNewFile();
-		
+		registry = LocateRegistry.getRegistry(l.getPort());
 		managerIDbase++;
 	}
 	
@@ -42,19 +45,59 @@ public class ManagerClient {
 		 writer.close();
 	}
 	
+	public void changeLocation(Location l){
+		String tmp = managerID.substring(3);
+		managerID = l.toString() + tmp;
+	}
+	
+	public void createTRecord(String firstName, String lastName, String adTRess, 
+			  					String phone, Specialization special, Location loc) throws RemoteException, IOException, NotBoundException{
+		intrfc = (DCMSInterface)registry.lookup(managerID.substring(0, 3));
+		String reply = intrfc.createTRecord(firstName, lastName, adTRess, phone, special, loc);
+		System.out.println(reply);
+		writeToLog(reply);
+		
+	}
+	
+	public void createSRecord(String firstName, String lastName, Course course, 
+								Status status, String statusdate) throws IOException, RemoteException, NotBoundException{
+		intrfc = (DCMSInterface)registry.lookup(managerID.substring(0, 3));
+		String reply = intrfc.createSRecord(firstName, lastName, course, status, statusdate);
+		System.out.println(reply);
+		writeToLog(reply);
+	}
+	
+	public void getRecordCounts() throws IOException, RemoteException, NotBoundException{
+		intrfc = (DCMSInterface)registry.lookup(managerID.substring(0, 3));
+		String reply = intrfc.getRecordCounts();
+		System.out.println(reply);
+		writeToLog(reply);
+	}
+	
+	public void EditRecord(String recordID, String fieldName, String newValue) throws IOException, RemoteException, NotBoundException{
+		intrfc = (DCMSInterface)registry.lookup(managerID.substring(0, 3));
+		String reply = intrfc.EditRecord(recordID, fieldName, newValue);
+		System.out.println(reply);
+		writeToLog(reply);
+	}
 
-	public static void main(String args[]){
+	public static void main(String args[]) throws IOException, NotBoundException{
 		
-		
-		
-		
+		ManagerClient mtlManager1 = new ManagerClient(Location.MTL);
+		ManagerClient mtlManager2 = new ManagerClient(Location.MTL);
+		ManagerClient lvlManager1 = new ManagerClient(Location.LVL);
+		ManagerClient lvlManager2 = new ManagerClient(Location.LVL);
+		ManagerClient ddoManager1 = new ManagerClient(Location.DDO);
+		ManagerClient ddoManager2 = new ManagerClient(Location.DDO);
+
+		mtlManager1.createSRecord("Student", "Student", Course.FRENCH, Status.ACTIVE, "2017-May-1");
+		mtlManager2.createTRecord("Teacher", "Teacher", "ABC", "123", Specialization.FRENCH , Location.MTL);
+		lvlManager1.getRecordCounts();
+		lvlManager2.getRecordCounts();
+		mtlManager1.EditRecord("TR10000", "Specialization", "MATHS");
+		mtlManager2.EditRecord("SR10001", "COURSE", "MATHS");
 
 //	try{
-//		System.setSecurityManager(new RMISecurityManager());
-//
-//		//Create an instance of the server -- to be replaced with RMIRegistry lookup.
-//		//TextScramblerInterface server = (TextScramblerInterface) Naming.lookup("rmi://localhost:2020/test");
-//					
 //		int userChoice=0;
 //		String userInput="";
 //		Scanner keyboard = new Scanner(System.in);
@@ -99,7 +142,7 @@ public class ManagerClient {
 //					System.out.println("back to main menu");
 //				}
 //				else{
-//					System.out.println("Invalud input, please enter \"MTL\", \"LVL\", \"DDO\" ");
+//					System.out.println("Invalid input, please enter \"MTL\", \"LVL\", \"DDO\" ");
 //					System.out.println("back to main menu");					
 //				}
 //				//System.out.println(server.testInputText(userInput));

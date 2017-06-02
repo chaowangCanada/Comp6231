@@ -20,9 +20,9 @@ public interface PublicParamters {
 	};
 	
 		
-	enum Specialization {SURGEON, ORTHOPAEDIC};
-	enum Designation {JUNIOR, SENIOR};
-	enum Status {ACTIVE, TERMINATED};
+	enum Specialization {FRENCH, MATHS, SCIENCE};
+	enum Course {FRENCH, MATHS, SCIENCE};
+	enum Status {ACTIVE, INACTIVE};
 	
 	final int SERVER_PORT_MTL = 7000;
 	final int SERVER_PORT_LVL = 7001;
