@@ -9,6 +9,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.text.ParseException;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -40,7 +41,7 @@ public class ManagerClient {
 	
 	public void writeToLog(String str) throws IOException{
 		 FileWriter writer = new FileWriter(log,true);
-		 writer.write(str+"\n");
+		 writer.write(PublicParamters.dateFormat.format(Calendar.getInstance()) +" : " + str  +"\n");
 		 writer.flush();
 		 writer.close();
 	}

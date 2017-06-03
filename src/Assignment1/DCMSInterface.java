@@ -7,7 +7,6 @@ import java.rmi.RemoteException;
 import Assignment1.PublicParamters.*;
 
 // how did you editRecord location?
-// How to deal with Course list?
 // how to multithread getRecordCount()?
 // how to synchronized, LinkedList is not thread safe.Try ConcurrentLinkedQueue or LinkedBlockingDeque, ConcurrentHashMap
 // Whenever a manager performs an operation, the system must identify the center that manager belongs to by looking at the managerID

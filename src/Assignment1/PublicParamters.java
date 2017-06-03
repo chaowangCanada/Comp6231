@@ -1,5 +1,8 @@
 package Assignment1;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
 public interface PublicParamters {
 
 	
@@ -27,5 +30,6 @@ public interface PublicParamters {
 	final int SERVER_PORT_MTL = 7000;
 	final int SERVER_PORT_LVL = 7001;
 	final int SERVER_PORT_DDO = 7002;
-	
+	public DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+
 }

@@ -12,6 +12,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -316,7 +317,7 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 	
 	public void writeToLog(String str) throws IOException{
 		 FileWriter writer = new FileWriter(logFile,true);
-		 writer.write(str+"\n");
+		 writer.write(PublicParamters.dateFormat.format(Calendar.getInstance()) +" : " + str  +"\n");
 		 writer.flush();
 		 writer.close();
 	}
