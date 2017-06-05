@@ -1,4 +1,0 @@
-2017/06/04 10:51:22 : Sucessfully write Student record. Record ID: SR10004
-2017/06/04 10:51:22 : Sucessfully write Teacher record. Record ID: TR10005
-2017/06/04 10:51:23 : LVL 4, MTL 4,DDO 0,
-2017/06/04 10:51:23 : LVL 4, MTL 4,DDO 0,

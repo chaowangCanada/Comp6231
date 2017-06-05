@@ -1,4 +1,0 @@
-2017/06/04 10:51:22 : Sucessfully write Student record. Record ID: SR10006
-2017/06/04 10:51:22 : Sucessfully write Teacher record. Record ID: TR10007
-2017/06/04 10:51:23 : cannot find such record
-2017/06/04 10:51:23 : cannot find such record
