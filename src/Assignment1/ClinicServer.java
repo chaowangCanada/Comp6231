@@ -13,6 +13,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -34,6 +35,10 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		logFile = new File(location+"_log.txt");
 		if(! logFile.exists())
 			logFile.createNewFile();
+		else{
+			if(logFile.delete())
+				logFile.createNewFile();
+		}
 		recordData = new HashMap<Character, LinkedList<Record>>();
 	}
 	
@@ -44,109 +49,113 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 	
 
 	public void openUDPListener(){
-		DatagramSocket aSocket = null;
-		
-		try{
-			aSocket  = new DatagramSocket(this.location.getPort());
-			byte[] buffer = new byte[1000];
-			DatagramPacket request = new DatagramPacket(buffer, buffer.length);
-			new UDPListenerThread(aSocket, request, this).start();
-		}catch (SocketException e ){System.out.println("Socket"+ e.getMessage());
-		}catch (IOException e) {System.out.println("IO"+e.getMessage());
-		}finally { if (aSocket !=null ) aSocket.close();}
+
+		new UDPListenerThread(this).start();
+
 	}
 	
 	private class UDPListenerThread extends Thread{
-		DatagramSocket socket = null;
-		DatagramPacket request = null;
-		ClinicServer server = null;
+
+		private ClinicServer server = null;
 		
-		String recordCount ;
+		private String recordCount ;
 		
-		public UDPListenerThread(DatagramSocket aSocket, DatagramPacket aRequest, ClinicServer threadServer)    {
-			socket=aSocket;
-			request = aRequest;
+		public UDPListenerThread(ClinicServer threadServer) {
 			server = threadServer;
 		}
 		
 		@Override
 		public void run() {
+			DatagramSocket aSocket = null;
+
 			try {
+				aSocket  = new DatagramSocket(server.location.getPort());
+				byte[] buffer = new byte[1000];
+				
 				while(true){
-					socket.receive(request);
-					synchronized(server){
-						if(request.getData() != null && request.getData().toString().equals("RecordCounts")){ // 
-							server.writeToLog("New thread starts for : "+request.getData().toString());
-							recordCount = server.getLocation().toString() + " " + server.recordCount + ",";
+					DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+					aSocket.receive(request);
+					if(request.getData() != null){
+						String requestStr = new String(request.getData(), request.getOffset(),request.getLength());
+						if(requestStr.equalsIgnoreCase("RecordCounts")){ 
+							server.writeToLog("Receive UDP message for : "+ requestStr );
+							recordCount = Integer.toString(server.recordCount);
 							DatagramPacket reply = new DatagramPacket(recordCount.getBytes(),recordCount.getBytes().length, request.getAddress(), request.getPort()); 
-							socket.send(reply);
+							aSocket.send(reply);
 						}
-						else if (request.getData() != null && request.getData().toString().substring(0, 13).equals("TeacherRecord")){
-							server.writeToLog("New thread starts for creating : "+request.getData().toString().substring(0, 13));
-							String[] info = request.getData().toString().split("|");
+						else if (requestStr.substring(0, 13).equalsIgnoreCase("TeacherRecord")){
+							server.writeToLog("Receive UDP message for creating : "+ requestStr.substring(0, 13));
+							String[] info = requestStr.split("&");
 							server.createTRecord(info[1], info[2], info[3], info[4], Specialization.valueOf(info[5]), Location.valueOf(info[6]));
 							String replyStr = "Successfully create Teatcher Record";
 							DatagramPacket reply = new DatagramPacket(replyStr.getBytes(),replyStr.getBytes().length, request.getAddress(), request.getPort()); 
-							socket.send(reply);
+							aSocket.send(reply);
 						}
-						else if (request.getData() != null && request.getData().toString().substring(0, 13).equals("StudentRecord")){
-							server.writeToLog("New thread starts for creating : "+request.getData().toString().substring(0, 13));
-							String[] info = request.getData().toString().split("|");
+						else if (requestStr.substring(0, 13).equalsIgnoreCase("StudentRecord")){
+							server.writeToLog("Receive UDP message for creating : "+ requestStr.substring(0, 13));
+							String[] info = requestStr.split("&");
 							server.createSRecord(info[1], info[2], Course.valueOf(info[3]), Status.valueOf(info[4]), info[5]);
 							String replyStr = "Successfully create Teatcher Record";
 							DatagramPacket reply = new DatagramPacket(replyStr.getBytes(),replyStr.getBytes().length, request.getAddress(), request.getPort()); 
-							socket.send(reply);
+							aSocket.send(reply);
 						}
 					}
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			}catch (SocketException e ){System.out.println("Socket"+ e.getMessage());
+			}catch (IOException e) {System.out.println("IO"+e.getMessage());
+			}finally { if (aSocket !=null ) aSocket.close();}
 		}
 	}
 		
-	public String createTRecord(String firstName, String lastName, String adTRess, 
+	public String createTRecord(String firstName, String lastName, String address, 
 							  String phone, Specialization special, Location loc) throws IOException, RemoteException{
 		if(loc == this.getLocation()){
 			this.writeToLog(location.toString() + " creates Teacher record.");
-			Record docRecord = new TeacherRecord(firstName, lastName, adTRess, phone, special, loc);
+			Record tchrRecord = new TeacherRecord(firstName, lastName, address, phone, special, loc);
+			if(recordData.get(lastName.charAt(0)) == null){
+				recordData.put(lastName.charAt(0), new LinkedList<Record>());
+			}
 			synchronized(recordData.get(lastName.charAt(0))){
-				if(recordData.get(lastName.charAt(0)) == null){
-					recordData.put(lastName.charAt(0), new LinkedList<Record>());
-				}
-				if(recordData.get(lastName.charAt(0)).add(docRecord)){
-					String output = "Sucessfully write Teacher record. Record ID: "+docRecord.getRecordID();
+				if(recordData.get(lastName.charAt(0)).add(tchrRecord)){
+					String output = "Sucessfully write Teacher record. Record ID: "+tchrRecord.getRecordID();
 					this.writeToLog(output);
 					recordCount++;
 					return output;
 				}
 			}
 		}
+		this.writeToLog("failed to write Teacher Record");
+		System.out.println("failed to write Teacher Record");
 		return "failed to write Teacher Record";
 	}
 	
 	public String createSRecord(String firstName, String lastName, Course course, 
 								Status status, String statusdate) throws IOException, RemoteException{
-		this.writeToLog(location.toString() + " creates Teacher record.");
-		Record nurRecord = new StudentRecord(firstName, lastName, course, status, statusdate);
+		this.writeToLog(location.toString() + " creates Student record.");
+		Record studntRecord = new StudentRecord(firstName, lastName, course, status, statusdate);
+		if(recordData.get(lastName.charAt(0)) == null){
+			recordData.put(lastName.charAt(0), new LinkedList<Record>());
+		}
 		synchronized(recordData.get(lastName.charAt(0))){
-			if(recordData.get(lastName.charAt(0)) == null){
-				recordData.put(lastName.charAt(0), new LinkedList<Record>());
-			}
-			if(recordData.get(lastName.charAt(0)).add(nurRecord)){
-				String output = "Sucessfully write Teacher record. Record ID: "+nurRecord.getRecordID();
+			if(recordData.get(lastName.charAt(0)).add(studntRecord)){
+				String output = "Sucessfully write Student record. Record ID: "+studntRecord.getRecordID();
 				this.writeToLog(output);
 				recordCount++;
 				return output;
 			}
 		}
+		this.writeToLog("failed to write Student Record");
+		System.out.println("failed to write Student Record");
 		return "failed to write Student Record";
 	}
 	
 	public String getRecordCounts() throws IOException, RemoteException{
 		this.writeToLog("try to count all record at "+ location.toString());
 		String output = this.location.toString() + " " + recordCount + ", ";
-		for(ClinicServer server : ServerManageSystem.serverList){
+		if(ServerRunner.serverList.size() ==1 ){
+			return output;
+		}
+		for(ClinicServer server : ServerRunner.serverList){
 			if(server.getLocation() !=this.getLocation()){
 				output += server.getLocation().toString() + " " + requestRecordCounts(server) + ",";
 			}
@@ -164,13 +173,15 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 			InetAddress aHost = InetAddress.getByName("localhost");
 			int serverPort = server.getLocation().getPort();
 			DatagramPacket request = new DatagramPacket(message, message.length, aHost , serverPort);
+			this.writeToLog("UDP message to "+ server.getLocation().toString());
 			aSocket.send(request);
 			
 			byte[] buffer = new byte[1000];
 			DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
 			aSocket.receive(reply);
+			this.writeToLog("Receive UDP reply from "+ server.getLocation().toString());
+			String str = new String(reply.getData(), reply.getOffset(),reply.getLength());
 
-			String str = reply.getData().toString();
 			return str;
 		}
 		catch (SocketException e){
@@ -192,23 +203,28 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		String output = new String();
 
 		if(recordID.substring(0,2).equalsIgnoreCase("TR")){
-			if(fieldName.equalsIgnoreCase("adTRess")||
+			if(fieldName.equalsIgnoreCase("address")||
 					fieldName.equalsIgnoreCase("phone")||
 					fieldName.equalsIgnoreCase("location")){
-				output= traverseToEdit(recordID, fieldName, newValue, 'd');
+				output= traverseToEdit(recordID, fieldName, newValue, 't');
 				this.writeToLog(output);
+			} else{
+				output ="wrong fieldName";
 			}
 		} 
 		else if(recordID.substring(0,2).equalsIgnoreCase("SR")){
-			if(fieldName.equalsIgnoreCase("designation")||
+			if(fieldName.equalsIgnoreCase("course")||
 					fieldName.equalsIgnoreCase("status")||
-					fieldName.equalsIgnoreCase("statusDate")){
-				output = traverseToEdit(recordID, fieldName, newValue, 'n');
+					fieldName.equalsIgnoreCase("status Date")){
+				output = traverseToEdit(recordID, fieldName, newValue, 's');
 				this.writeToLog(output);
+			}
+			else{
+				output ="wrong fieldName";
 			}
 		}
 		else{
-			output +="wrong recordID, or wrong fieldName";
+			output ="wrong recordID";
 			this.writeToLog(output);
 		}
 		
@@ -228,29 +244,32 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 				   while(listIt.hasNext()){
 					   Record record = (Record) listIt.next();
 					   if(record.getRecordID().equalsIgnoreCase(recordID)){
-						   if(RecordInit == 'd'){
-							   if(fieldName.equalsIgnoreCase("adTRess")){
+						   if(RecordInit == 't'){
+							   if(fieldName.equalsIgnoreCase("address")){
 								   ((TeacherRecord)record).setAddress(newValue);
-				        	  		return recordID+"'s adTRess is changed to "+((TeacherRecord)record).getAddress();
+				        	  		return recordID+"'s address is changed to "+((TeacherRecord)record).getAddress();
 							   } 
 							   else if(fieldName.equalsIgnoreCase("phone")){
 								   ((TeacherRecord)record).setPhone(newValue);
 				        	  		return recordID+"'s phone is changed to "+((TeacherRecord)record).getPhone();
 							   }
 							   else if(fieldName.equalsIgnoreCase("location")){
+								   newValue = newValue.toUpperCase(); // location are all upper case
 								   ((TeacherRecord)record).setLocation(newValue);
 				        	  		String output = recordID+"'s location is changed to "+((TeacherRecord)record).getLocation().toString();
-				        			for(ClinicServer server : ServerManageSystem.serverList){
+				        			for(ClinicServer server : ServerRunner.serverList){
 				        				if(server.getLocation() == Location.valueOf(newValue)){
 						        	  		requestCreateRecord(server, record);
 						        	  		listIt.remove();
+						        	  		recordCount --;
 				        				}
 				        			}
 				        	  		return output;
 							   }
 						   } 
-						   else if(RecordInit == 'n'){
+						   else if(RecordInit == 's'){
 							   if(fieldName.equalsIgnoreCase("course")){
+								   newValue = newValue.toUpperCase(); // course, status are all upper case
 								   if(((StudentRecord)record).findCourse(newValue))
 									   ((StudentRecord)record).addCourse(newValue);
 								   else
@@ -258,6 +277,7 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 				        	  		return recordID+"'s course is changed to "+((StudentRecord)record).getCourse();
 							   } 
 							   else if(fieldName.equalsIgnoreCase("status")){
+								   newValue = newValue.toUpperCase(); // course, status are all upper case
 								   ((StudentRecord)record).setStatus(newValue);
 				        	  		return recordID+"'s status is changed to "+((StudentRecord)record).getStatus().toString();
 							   }
@@ -266,12 +286,15 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 				        	  		return recordID+"'s status date is changed to "+((StudentRecord)record).getStatusDate();   
 							   }
 						   }
+						   else{
+							   return "RecordId has problem";
+						   }
 					   }
 				   }
 			   }
 		}
 
-		return null;
+		return "cannot find such record";
 	}
 
 	private void requestCreateRecord(ClinicServer server, Record record) {
@@ -282,13 +305,13 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 			aSocket = new DatagramSocket();
 			String recordString  = "";
 		    if(record instanceof TeacherRecord) 
-		    	recordString += "TeacherRecord"+record.getFirstName()+"|"+record.getLastName()+"|"+((TeacherRecord)record).getAddress()+
-		    					"|"+((TeacherRecord)record).getPhone()+"|"+((TeacherRecord)record).getSpecialization().toString()+
-		    					"|"+((TeacherRecord)record).getLocation().toString();
+		    	recordString += "TeacherRecord&"+record.getFirstName()+"&"+record.getLastName()+"&"+((TeacherRecord)record).getAddress()+
+		    					"&"+((TeacherRecord)record).getPhone()+"&"+((TeacherRecord)record).getSpecialization().toString()+
+		    					"&"+((TeacherRecord)record).getLocation().toString();
 		    if (record instanceof StudentRecord)
-		    	recordString += "StudentRecord"+record.getFirstName()+"|"+record.getLastName()+"|"+((StudentRecord)record).getCourse()+
-								"|"+((StudentRecord)record).getStatus().toString()+"|"+
-								"|"+((StudentRecord)record).getStatusDate();
+		    	recordString += "StudentRecord|"+record.getFirstName()+"&"+record.getLastName()+"&"+((StudentRecord)record).getCourse()+
+								"&"+((StudentRecord)record).getStatus().toString()+"&"+
+								"&"+((StudentRecord)record).getStatusDate();
 
 			byte[] message = recordString.getBytes();
 			InetAddress aHost = InetAddress.getByName("localhost");
@@ -300,7 +323,8 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 			DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
 			aSocket.receive(reply);
 
-			System.out.println( reply.getData().toString());
+			String str = new String(reply.getData(), reply.getOffset(),reply.getLength());
+			System.out.println( str);
 		}
 		catch (SocketException e){
 			System.out.println("Socket"+ e.getMessage());
@@ -315,9 +339,10 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		
 	}
 	
-	public void writeToLog(String str) throws IOException{
+	public synchronized void writeToLog(String str) throws IOException{
 		 FileWriter writer = new FileWriter(logFile,true);
-		 writer.write(PublicParamters.dateFormat.format(Calendar.getInstance()) +" : " + str  +"\n");
+		 Date date = new Date();
+		 writer.write(PublicParamters.dateFormat.format(date) +" : " + str  +"\n");
 		 writer.flush();
 		 writer.close();
 	}

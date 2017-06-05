@@ -1,0 +1,24 @@
+2017/06/04 10:51:22 : MTL creates Student record.
+2017/06/04 10:51:22 : Sucessfully write Student record. Record ID: SR10000
+2017/06/04 10:51:22 : MTL creates Teacher record.
+2017/06/04 10:51:22 : Sucessfully write Teacher record. Record ID: TR10001
+2017/06/04 10:51:22 : MTL creates Student record.
+2017/06/04 10:51:22 : Sucessfully write Student record. Record ID: SR10002
+2017/06/04 10:51:22 : MTL creates Teacher record.
+2017/06/04 10:51:22 : Sucessfully write Teacher record. Record ID: TR10003
+2017/06/04 10:51:22 : try to count all record at MTL
+2017/06/04 10:51:22 : UDP message to LVL
+2017/06/04 10:51:22 : Receive UDP reply from LVL
+2017/06/04 10:51:22 : UDP message to DDO
+2017/06/04 10:51:22 : Receive UDP reply from DDO
+2017/06/04 10:51:23 : try to count all record at MTL
+2017/06/04 10:51:23 : UDP message to LVL
+2017/06/04 10:51:23 : Receive UDP reply from LVL
+2017/06/04 10:51:23 : UDP message to DDO
+2017/06/04 10:51:23 : Receive UDP reply from DDO
+2017/06/04 10:51:23 : try to edit record for SR10000
+2017/06/04 10:51:23 : SR10000's status date is changed to 2010-01-01
+2017/06/04 10:51:23 : try to edit record for TR10001
+2017/06/04 10:51:23 : TR10001's address is changed to SCIENCE
+2017/06/04 10:51:23 : Receive UDP message for : RecordCounts
+2017/06/04 10:51:23 : Receive UDP message for : RecordCounts

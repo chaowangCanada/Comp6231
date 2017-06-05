@@ -16,7 +16,7 @@ public class StudentRecord extends Record{
 
 	public StudentRecord(String firstName, String lastName, Course course, Status stat, String date) {
 		super(firstName, lastName);
-		this.recordID = "NR"+Integer.toString(Record.baseID++);
+		this.recordID = "SR"+Integer.toString(Record.baseID++);
         this.statusDate = date;
         this.courseList = new ArrayList<Course>();
         this.courseList.add(course);
@@ -25,7 +25,7 @@ public class StudentRecord extends Record{
 	
 	public StudentRecord(String firstName, String lastName) {
 		super(firstName, lastName);
-		this.recordID = "NR"+Integer.toString(Record.baseID++);
+		this.recordID = "SR"+Integer.toString(Record.baseID++);
 	}
 
 	public StudentRecord() {

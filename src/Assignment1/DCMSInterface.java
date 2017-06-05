@@ -13,7 +13,7 @@ import Assignment1.PublicParamters.*;
 
 public interface DCMSInterface extends Remote{
 	
-	public String createTRecord(String firstName, String lastName, String adTRess, 
+	public String createTRecord(String firstName, String lastName, String address, 
 			  String phone, Specialization special, Location loc) throws RemoteException, IOException;
 	
 	public String createSRecord(String firstName, String lastName, Course course, 

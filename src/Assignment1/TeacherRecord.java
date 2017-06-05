@@ -12,7 +12,7 @@ public class TeacherRecord extends Record{
 	
 	public TeacherRecord(String firstName, String lastName) {
 		super(firstName, lastName);
-		this.recordID = "DR"+Integer.toString(Record.baseID++);
+		this.recordID = "TR"+Integer.toString(Record.baseID++);
 	}
 	
 	public TeacherRecord() {
@@ -21,7 +21,7 @@ public class TeacherRecord extends Record{
 
 	public TeacherRecord(String firstName, String lastName, String address, String phone,Specialization special, Location loc) {
 		super(firstName, lastName);
-		this.recordID = "DR"+Integer.toString(Record.baseID++);
+		this.recordID = "TR"+Integer.toString(Record.baseID++);
         this.address = address;
         this.phone = phone;
         this.specialization = special;
