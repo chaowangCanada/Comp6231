@@ -17,14 +17,20 @@ import java.util.Scanner;
 import Assignment1.PublicParamters.*;
 
 
+/**
+ * Manager class to create manager access server depends on location. 
+ * manager can only access its locaion's server
+ * @author Chao
+ *
+ */
 
 public class ManagerClient {
 
 
-	protected static int managerIDbase =1000;
+	protected static int managerIDbase =1000; // static to mark unique manager ID
 	private String managerID;	
 	private File log = null;
-	private Registry registry;
+	private Registry registry; // each manger only have 1 registry, cannot linked to 2 servers
 	private DCMSInterface intrfc;
 	
 	public ManagerClient(Location l) throws IOException, NotBoundException{
@@ -44,6 +50,11 @@ public class ManagerClient {
 		return managerID;
 	}
 	
+	/**
+	 * eacher manager has its own log, no race condition
+	 * @param str
+	 * @throws IOException
+	 */
 	public void writeToLog(String str) throws IOException{
 		 FileWriter writer = new FileWriter(log,true);
 		 Date date = new Date();
@@ -52,20 +63,49 @@ public class ManagerClient {
 		 writer.close();
 	}
 	
-	public void changeLocation(Location l){
+	/**
+	 * no need, if need to switch manager to different location
+	 * @param l
+	 * @throws RemoteException 
+	 */
+	public void changeLocation(Location l) throws RemoteException{
 		String tmp = managerID.substring(3);
 		managerID = l.toString() + tmp;
+		registry = LocateRegistry.getRegistry(l.getPort());
 	}
 	
+	/**
+	 * manager side call Server createTRecord through interface
+	 * @param firstName
+	 * @param lastName
+	 * @param address
+	 * @param phone
+	 * @param special
+	 * @param loc
+	 * @throws RemoteException
+	 * @throws IOException
+	 * @throws NotBoundException
+	 */
 	public void createTRecord(String firstName, String lastName, String address, 
 			  					String phone, Specialization special, Location loc) throws RemoteException, IOException, NotBoundException{
-		intrfc = (DCMSInterface)registry.lookup(managerID.substring(0, 3));
+		intrfc = (DCMSInterface)registry.lookup(managerID.substring(0, 3)); //dynamic bindling clinet to server.
 		String reply = intrfc.createTRecord(firstName, lastName, address, phone, special, loc);
 		System.out.println(reply);
 		writeToLog(reply);
 		
 	}
 	
+	/**
+	 * manager side call Server createSRecord through interface
+	 * @param firstName
+	 * @param lastName
+	 * @param course
+	 * @param status
+	 * @param statusdate
+	 * @throws IOException
+	 * @throws RemoteException
+	 * @throws NotBoundException
+	 */
 	public void createSRecord(String firstName, String lastName, Course course, 
 								Status status, String statusdate) throws IOException, RemoteException, NotBoundException{
 		intrfc = (DCMSInterface)registry.lookup(managerID.substring(0, 3));
@@ -74,15 +114,30 @@ public class ManagerClient {
 		writeToLog(reply);
 	}
 	
+	/**
+	 * manager side call Server getRecordCounts through interface
+	 * @throws IOException
+	 * @throws RemoteException
+	 * @throws NotBoundException
+	 */
 	public void getRecordCounts() throws IOException, RemoteException, NotBoundException{
-		intrfc = (DCMSInterface)registry.lookup(managerID.substring(0, 3));
+		intrfc = (DCMSInterface)registry.lookup(managerID.substring(0, 3)); //dynamic bindling clinet to server.
 		String reply = intrfc.getRecordCounts();
 		System.out.println(reply);
 		writeToLog(reply);
 	}
 	
+	/**
+	 * manager side call Server EditRecord through interface
+	 * @param recordID
+	 * @param fieldName
+	 * @param newValue
+	 * @throws IOException
+	 * @throws RemoteException
+	 * @throws NotBoundException
+	 */
 	public void EditRecord(String recordID, String fieldName, String newValue) throws IOException, RemoteException, NotBoundException{
-		intrfc = (DCMSInterface)registry.lookup(managerID.substring(0, 3));
+		intrfc = (DCMSInterface)registry.lookup(managerID.substring(0, 3)); //dynamic bindling clinet to server.
 		String reply = intrfc.EditRecord(recordID, fieldName, newValue);
 		System.out.println(reply);
 		writeToLog(reply);

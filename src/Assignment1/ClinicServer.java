@@ -21,11 +21,16 @@ import java.util.Map.Entry;
 
 import Assignment1.PublicParamters.*;
 
+/**
+ * Server class, using RMI, and UDP, for server-server communication
+ * @author Chao
+ *
+ */
 
 public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{	
 	
 	private File logFile = null;
-	private HashMap<Character, LinkedList<Record>> recordData;
+	private HashMap<Character, LinkedList<Record>> recordData;  // store Student Record and Teacher Record. Servers doen't share record
 	private Location location;
 	private int recordCount = 0; 
 	
@@ -48,12 +53,14 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 	}
 	
 
+	// create new thread wrapper class
 	public void openUDPListener(){
 
 		new UDPListenerThread(this).start();
 
 	}
 	
+	// thread for while(true) loop, waiting for reply
 	private class UDPListenerThread extends Thread{
 
 		private ClinicServer server = null;
@@ -72,6 +79,7 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 				aSocket  = new DatagramSocket(server.location.getPort());
 				byte[] buffer = new byte[1000];
 				
+				// 3 types of reply, getRecordCount, move Student Record among server, move teacher record among server
 				while(true){
 					DatagramPacket request = new DatagramPacket(buffer, buffer.length);
 					aSocket.receive(request);
@@ -95,7 +103,7 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 							server.writeToLog("Receive UDP message for creating : "+ requestStr.substring(0, 13));
 							String[] info = requestStr.split("&");
 							server.createSRecord(info[1], info[2], Course.valueOf(info[3]), Status.valueOf(info[4]), info[5]);
-							String replyStr = "Successfully create Teatcher Record";
+							String replyStr = "Successfully create Student Record";
 							DatagramPacket reply = new DatagramPacket(replyStr.getBytes(),replyStr.getBytes().length, request.getAddress(), request.getPort()); 
 							aSocket.send(reply);
 						}
@@ -107,6 +115,10 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		}
 	}
 		
+	/*
+	 * (non-Javadoc)
+	 * @see Assignment1.DCMSInterface#createTRecord(java.lang.String, java.lang.String, java.lang.String, java.lang.String, Assignment1.PublicParamters.Specialization, Assignment1.PublicParamters.Location)
+	 */
 	public String createTRecord(String firstName, String lastName, String address, 
 							  String phone, Specialization special, Location loc) throws IOException, RemoteException{
 		if(loc == this.getLocation()){
@@ -115,7 +127,7 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 			if(recordData.get(lastName.charAt(0)) == null){
 				recordData.put(lastName.charAt(0), new LinkedList<Record>());
 			}
-			synchronized(recordData.get(lastName.charAt(0))){
+			synchronized(recordData.get(lastName.charAt(0))){ // linked list is not thread safe, need to lock avoid race condition
 				if(recordData.get(lastName.charAt(0)).add(tchrRecord)){
 					String output = "Sucessfully write Teacher record. Record ID: "+tchrRecord.getRecordID();
 					this.writeToLog(output);
@@ -129,6 +141,10 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		return "failed to write Teacher Record";
 	}
 	
+	/*
+	 * 
+	 * @see Assignment1.DCMSInterface#createSRecord(java.lang.String, java.lang.String, Assignment1.PublicParamters.Course, Assignment1.PublicParamters.Status, java.lang.String)
+	 */
 	public String createSRecord(String firstName, String lastName, Course course, 
 								Status status, String statusdate) throws IOException, RemoteException{
 		this.writeToLog(location.toString() + " creates Student record.");
@@ -136,7 +152,7 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		if(recordData.get(lastName.charAt(0)) == null){
 			recordData.put(lastName.charAt(0), new LinkedList<Record>());
 		}
-		synchronized(recordData.get(lastName.charAt(0))){
+		synchronized(recordData.get(lastName.charAt(0))){ // linked list is not thread safe, need to lock avoid race condition
 			if(recordData.get(lastName.charAt(0)).add(studntRecord)){
 				String output = "Sucessfully write Student record. Record ID: "+studntRecord.getRecordID();
 				this.writeToLog(output);
@@ -149,12 +165,18 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		return "failed to write Student Record";
 	}
 	
+	
+	/*
+	 * @return message for manager log
+	 * @see Assignment1.DCMSInterface#getRecordCounts()
+	 */
 	public String getRecordCounts() throws IOException, RemoteException{
 		this.writeToLog("try to count all record at "+ location.toString());
 		String output = this.location.toString() + " " + recordCount + ", ";
 		if(ServerRunner.serverList.size() ==1 ){
 			return output;
 		}
+		// send
 		for(ClinicServer server : ServerRunner.serverList){
 			if(server.getLocation() !=this.getLocation()){
 				output += server.getLocation().toString() + " " + requestRecordCounts(server) + ",";
@@ -163,14 +185,18 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		return output;
 	}
 	
-	
+	/**
+	 * socket programming send message to other server
+	 * @param server
+	 * @return message to manager log
+	 */
 	public String requestRecordCounts(ClinicServer server){
 		DatagramSocket aSocket = null;
 		
 		try{
 			aSocket = new DatagramSocket();
 			byte[] message = "RecordCounts".getBytes();
-			InetAddress aHost = InetAddress.getByName("localhost");
+			InetAddress aHost = InetAddress.getByName("localhost");  // since all servers on same machine
 			int serverPort = server.getLocation().getPort();
 			DatagramPacket request = new DatagramPacket(message, message.length, aHost , serverPort);
 			this.writeToLog("UDP message to "+ server.getLocation().toString());
@@ -198,6 +224,10 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see Assignment1.DCMSInterface#EditRecord(java.lang.String, java.lang.String, java.lang.String)
+	 */
 	public String EditRecord(String recordID, String fieldName, String newValue) throws IOException, RemoteException{
 		this.writeToLog("try to edit record for "+recordID);
 		String output = new String();
@@ -206,7 +236,7 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 			if(fieldName.equalsIgnoreCase("address")||
 					fieldName.equalsIgnoreCase("phone")||
 					fieldName.equalsIgnoreCase("location")){
-				output= traverseToEdit(recordID, fieldName, newValue, 't');
+				output= traverseToEdit(recordID, fieldName, newValue, 't'); // t means teacher record
 				this.writeToLog(output);
 			} else{
 				output ="wrong fieldName";
@@ -216,7 +246,7 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 			if(fieldName.equalsIgnoreCase("course")||
 					fieldName.equalsIgnoreCase("status")||
 					fieldName.equalsIgnoreCase("status Date")){
-				output = traverseToEdit(recordID, fieldName, newValue, 's');
+				output = traverseToEdit(recordID, fieldName, newValue, 's'); // s means student record
 				this.writeToLog(output);
 			}
 			else{
@@ -232,6 +262,14 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 
 	}
 	
+	/**
+	 * since don't have the key, need to traverse hashmap to find the right record
+	 * @param recordID
+	 * @param fieldName
+	 * @param newValue
+	 * @param RecordInit
+	 * @return
+	 */
 	private String traverseToEdit(String recordID, String fieldName, String newValue, char RecordInit) {
 		Iterator it = recordData.entrySet().iterator();
 		while(it.hasNext()){
@@ -297,6 +335,12 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		return "cannot find such record";
 	}
 
+	/**
+	 * socket programming, request to other server to add a record
+	 * record re allocation
+	 * @param server
+	 * @param record
+	 */
 	private void requestCreateRecord(ClinicServer server, Record record) {
 
 		DatagramSocket aSocket = null;
@@ -339,6 +383,11 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		
 	}
 	
+	/**
+	 * log file write always needs to be multrual exclusion
+	 * @param str
+	 * @throws IOException
+	 */
 	public synchronized void writeToLog(String str) throws IOException{
 		 FileWriter writer = new FileWriter(logFile,true);
 		 Date date = new Date();

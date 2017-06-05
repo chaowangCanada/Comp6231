@@ -5,6 +5,13 @@ import java.rmi.NotBoundException;
 
 import Assignment1.PublicParamters.*;
 
+/**
+ * Manager Client runner, 
+ * 1. multi task test
+ * 2. Text UI
+ * @author Chao
+ *
+ */
 
 public class ClientRunner {
 

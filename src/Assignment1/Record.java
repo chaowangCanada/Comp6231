@@ -1,9 +1,15 @@
 package Assignment1;
 
 
+/**
+ * Parent record class, contains shared attributes fn, ln, id
+ * children: student record, teacher record
+ * @author Chao
+ *
+ */
 public class Record {
 
-	protected static int baseID = 10000;
+	protected static int baseID = 10000;  // static base id set
 	private String firstName;
 	private String lastName;
 	protected String recordID;

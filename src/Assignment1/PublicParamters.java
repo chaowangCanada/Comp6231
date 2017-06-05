@@ -3,6 +3,11 @@ package Assignment1;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+/**
+ * define all the parameter, configuration file
+ * @author Chao
+ *
+ */
 public interface PublicParamters {
 
 	

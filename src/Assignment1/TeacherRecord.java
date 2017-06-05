@@ -2,12 +2,17 @@ package Assignment1;
 
 import Assignment1.PublicParamters.*;
 
+/**
+ * teacher record saved in server hashmap 
+ * @author Chao
+ *
+ */
 public class TeacherRecord extends Record{
 
 	private String address;
 	private String phone;
-	private Specialization specialization;
-	private Location location;
+	private Specialization specialization;  //use enum
+	private Location location;  //use enum
 	
 	
 	public TeacherRecord(String firstName, String lastName) {
