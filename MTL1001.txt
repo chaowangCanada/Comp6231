@@ -1,4 +1,0 @@
-2017/06/04 19:04:46 : Sucessfully write Student record. Record ID: SR10014
-2017/06/04 19:04:46 : Sucessfully write Teacher record. Record ID: TR10015
-2017/06/04 19:04:46 : MTL 8, LVL 8,DDO 8,
-2017/06/04 19:04:46 : TR10001's address is changed to SCIENCE
