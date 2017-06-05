@@ -3,10 +3,8 @@ package Assignment1;
 import java.io.IOException;
 import java.rmi.NotBoundException;
 
-import Assignment1.PublicParamters.Course;
-import Assignment1.PublicParamters.Location;
-import Assignment1.PublicParamters.Specialization;
-import Assignment1.PublicParamters.Status;
+import Assignment1.PublicParamters.*;
+
 
 public class ClientRunner {
 
@@ -31,9 +29,9 @@ public class ClientRunner {
 		lvlManager2.createTRecord("Teacher2", "Teacher2", "ABC", "123", Specialization.FRENCH , Location.LVL);
 		
 		ddoManager1.createSRecord("Student", "Student", Course.FRENCH, Status.ACTIVE, "2017-May-1");
-		ddoManager1.createTRecord("Teacher", "Teacher", "ABC", "123", Specialization.FRENCH , Location.MTL);
+		ddoManager1.createTRecord("Teacher", "Teacher", "ABC", "123", Specialization.FRENCH , Location.DDO);
 		ddoManager2.createSRecord("Student", "Student", Course.FRENCH, Status.ACTIVE, "2017-May-1");
-		ddoManager2.createTRecord("Teacher", "Teacher", "ABC", "123", Specialization.FRENCH , Location.MTL);
+		ddoManager2.createTRecord("Teacher", "Teacher", "ABC", "123", Specialization.FRENCH , Location.DDO);
 		
 		
 		mtlManager1.getRecordCounts();
@@ -42,14 +40,14 @@ public class ClientRunner {
 		mtlManager2.EditRecord("TR10001", "address", "SCIENCE");
 		
 		lvlManager1.getRecordCounts();
-		lvlManager1.getRecordCounts();
-		lvlManager2.EditRecord("SR10000", "status date", "2010-01-01");
-		lvlManager2.EditRecord("TR10001", "address", "SCIENCE");
+		lvlManager2.getRecordCounts();
+		lvlManager1.EditRecord("SR10004", "status date", "2010-01-01");
+		lvlManager2.EditRecord("TR10005", "address", "SCIENCE");
 		
 		ddoManager1.getRecordCounts();
-		ddoManager1.getRecordCounts();
-		ddoManager2.EditRecord("SR10000", "address", "SCIENCE");
-		ddoManager2.EditRecord("TR10001", "status date", "2010-01-01");
+		ddoManager2.getRecordCounts();
+		ddoManager1.EditRecord("SR10008", "status date", "2010-01-01");
+		ddoManager2.createSRecord("Student3", "Student3", Course.FRENCH, Status.ACTIVE, "2017-May-1");
 
 		/* TUI menu
 	try{
