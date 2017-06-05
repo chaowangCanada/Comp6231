@@ -47,6 +47,10 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 		recordData = new HashMap<Character, LinkedList<Record>>();
 	}
 	
+	/**
+	 *  create registry, RMI binding with registry
+	 * @throws Exception
+	 */
 	public void exportServer() throws Exception {
 		Registry registry= LocateRegistry.createRegistry(location.getPort());
 		registry.bind(location.toString(), this);

@@ -10,7 +10,11 @@ import java.text.SimpleDateFormat;
  */
 public interface PublicParamters {
 
-	
+	/**
+	 * Location contains port number, 1 location only can have 1 server port
+	 * @author Chao
+	 *
+	 */
 	enum Location{
 		MTL(SERVER_PORT_MTL), 
 		LVL(SERVER_PORT_LVL), 
@@ -32,6 +36,7 @@ public interface PublicParamters {
 	enum Course {FRENCH, MATHS, SCIENCE};
 	enum Status {ACTIVE, INACTIVE};
 	
+	// server port cannot be change at run time
 	final int SERVER_PORT_MTL = 7000;
 	final int SERVER_PORT_LVL = 7001;
 	final int SERVER_PORT_DDO = 7002;
