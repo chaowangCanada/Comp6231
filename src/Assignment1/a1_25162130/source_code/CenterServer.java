@@ -12,12 +12,19 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import Assignment1.PublicParamters.*;
 
@@ -174,19 +181,93 @@ public class CenterServer extends UnicastRemoteObject implements DCMSInterface{
 	 * @return message for manager log
 	 * @see Assignment1.DCMSInterface#getRecordCounts()
 	 */
-	public String getRecordCounts() throws IOException, RemoteException{
+	public String getRecordCounts() throws IOException, RemoteException, InterruptedException, ExecutionException{
 		this.writeToLog("try to count all record at "+ location.toString());
 		String output = this.location.toString() + " " + recordCount + ", ";
 		if(ServerRunner.serverList.size() ==1 ){
 			return output;
 		}
-		// send
-		for(CenterServer server : ServerRunner.serverList){
+		// send request using multi threading. use Callable (similar to runnerable)
+		else{
+			//	newFixedThreadPool it self is thread joinable 
+			ExecutorService pool = Executors.newFixedThreadPool(ServerRunner.serverList.size()-1); //self server no need to add
+			List<Future<String>> requestArr = new ArrayList<Future<String>>();
+			for(CenterServer server : ServerRunner.serverList){
+				if(server.getLocation() !=this.getLocation()){
+					// future:  an asynchronous computation
+					// submit: creating and returning a Future that can be used to cancel execution and/or wait for completion
+					Future<String> request = pool.submit(new RecordCountRequest(server));
+					requestArr.add(request);
+				}
+			}
+			// till now thread are all executed
+			for(int i = 0 ; i < requestArr.size(); i++){
+				// The Future result can only be retrieved using method get when the computation has completed, blocking if necessary until it is ready
+				output += requestArr.get(i).get();
+			}
+			pool.shutdown();
+		}
+		// send request one by one, no threading
+		/*
+		for(ClinicServer server : ServerRunner.serverList){
 			if(server.getLocation() !=this.getLocation()){
 				output += server.getLocation().toString() + " " + requestRecordCounts(server) + ",";
 			}
 		}
+		*/		
 		return output;
+	}
+	
+
+	/**
+	 * thread to request record count
+	 * @author Chao
+	 */
+	// The Callable interface is similar to Runnable, in that both are designed for classes whose instances are potentially executed by another thread. 
+	// A Runnable, however, does not return a result and cannot throw a checked exception. 
+	private class RecordCountRequest implements Callable<String>{
+		
+		private CenterServer server;
+		private String output;
+
+		public RecordCountRequest(CenterServer server){
+			this.server = server;
+		}
+		
+		@Override
+		public String call() throws Exception {
+			DatagramSocket aSocket = null;
+			
+			try{
+				aSocket = new DatagramSocket();
+				byte[] message = "RecordCounts".getBytes();
+				InetAddress aHost = InetAddress.getByName("localhost");  // since all servers on same machine
+				int serverPort = server.getLocation().getPort();
+				DatagramPacket request = new DatagramPacket(message, message.length, aHost , serverPort);
+				server.writeToLog("UDP message to "+ server.getLocation().toString());
+				aSocket.send(request);
+				
+				byte[] buffer = new byte[1000];
+				DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
+				aSocket.receive(reply);
+				server.writeToLog("Receive UDP reply from "+ server.getLocation().toString());
+				String str = new String(reply.getData(), reply.getOffset(),reply.getLength());
+				str = server.getLocation().toString() + " " + str + ", ";
+				return str;
+			}
+			catch (SocketException e){
+				System.out.println("Socket"+ e.getMessage());
+			}
+			catch (IOException e){
+				System.out.println("IO: "+e.getMessage());
+			}
+			finally {
+				if(aSocket != null ) 
+					aSocket.close();
+			}
+			return null;
+			
+		}
 	}
 	
 	/**

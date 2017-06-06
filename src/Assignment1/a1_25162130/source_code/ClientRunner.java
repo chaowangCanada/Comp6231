@@ -5,6 +5,7 @@ import java.rmi.NotBoundException;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
 
 import Assignment1.PublicParamters.*;
 
@@ -19,7 +20,7 @@ import Assignment1.PublicParamters.*;
 public class ClientRunner {
 
 
-	public static void main(String args[]) throws IOException, NotBoundException{
+	public static void main(String args[]) throws IOException, NotBoundException, InterruptedException, ExecutionException{
 		
 		ManagerClient mtlManager1 = new ManagerClient(Location.MTL);
 		ManagerClient mtlManager2 = new ManagerClient(Location.MTL);
