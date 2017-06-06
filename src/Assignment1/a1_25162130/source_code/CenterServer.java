@@ -27,14 +27,14 @@ import Assignment1.PublicParamters.*;
  *
  */
 
-public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{	
+public class CenterServer extends UnicastRemoteObject implements DCMSInterface{	
 	
 	private File logFile = null;
 	private HashMap<Character, LinkedList<Record>> recordData;  // store Student Record and Teacher Record. Servers doen't share record
 	private Location location;
 	private int recordCount = 0; 
 	
-	public ClinicServer(Location loc)throws IOException{
+	public CenterServer(Location loc)throws IOException{
 		super();
 		location = loc;
 		logFile = new File(location+"_log.txt");
@@ -67,11 +67,11 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 	// thread for while(true) loop, waiting for reply
 	private class UDPListenerThread extends Thread{
 
-		private ClinicServer server = null;
+		private CenterServer server = null;
 		
 		private String recordCount ;
 		
-		public UDPListenerThread(ClinicServer threadServer) {
+		public UDPListenerThread(CenterServer threadServer) {
 			server = threadServer;
 		}
 		
@@ -181,7 +181,7 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 			return output;
 		}
 		// send
-		for(ClinicServer server : ServerRunner.serverList){
+		for(CenterServer server : ServerRunner.serverList){
 			if(server.getLocation() !=this.getLocation()){
 				output += server.getLocation().toString() + " " + requestRecordCounts(server) + ",";
 			}
@@ -194,7 +194,7 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 	 * @param server
 	 * @return message to manager log
 	 */
-	public String requestRecordCounts(ClinicServer server){
+	public String requestRecordCounts(CenterServer server){
 		DatagramSocket aSocket = null;
 		
 		try{
@@ -299,7 +299,7 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 								   newValue = newValue.toUpperCase(); // location are all upper case
 								   ((TeacherRecord)record).setLocation(newValue);
 				        	  		String output = recordID+"'s location is changed to "+((TeacherRecord)record).getLocation().toString();
-				        			for(ClinicServer server : ServerRunner.serverList){
+				        			for(CenterServer server : ServerRunner.serverList){
 				        				if(server.getLocation() == Location.valueOf(newValue)){
 						        	  		requestCreateRecord(server, record);
 						        	  		listIt.remove();
@@ -343,7 +343,7 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 	 * @param server
 	 * @param record
 	 */
-	private void requestCreateRecord(ClinicServer server, Record record) {
+	private void requestCreateRecord(CenterServer server, Record record) {
 
 		DatagramSocket aSocket = null;
 		

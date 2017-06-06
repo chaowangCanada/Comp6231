@@ -13,6 +13,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
 
 import Assignment1.PublicParamters.*;
 
@@ -119,8 +120,10 @@ public class ManagerClient {
 	 * @throws IOException
 	 * @throws RemoteException
 	 * @throws NotBoundException
+	 * @throws ExecutionException 
+	 * @throws InterruptedException 
 	 */
-	public void getRecordCounts() throws IOException, RemoteException, NotBoundException{
+	public void getRecordCounts() throws IOException, RemoteException, NotBoundException, InterruptedException, ExecutionException{
 		intrfc = (DCMSInterface)registry.lookup(managerID.substring(0, 3)); //dynamic bindling clinet to server.
 		String reply = intrfc.getRecordCounts();
 		System.out.println(reply);

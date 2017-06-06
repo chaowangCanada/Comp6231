@@ -29,31 +29,49 @@ public class ClientRunner {
 		ManagerClient ddoManager1 = new ManagerClient(Location.DDO);
 		ManagerClient ddoManager2 = new ManagerClient(Location.DDO);
 
+		// test functionality
 		mtlManager1.createSRecord("Student1", "Student1", Course.FRENCH, Status.ACTIVE, "2017-May-1");
-		mtlManager1.createTRecord("Teacher1", "Teacher1", "ABC", "123", Specialization.FRENCH , Location.MTL);
-		mtlManager2.createSRecord("Student2", "Student2", Course.FRENCH, Status.ACTIVE, "2017-May-1");
-		mtlManager2.createTRecord("Teacher2", "Teacher2", "ABC", "123", Specialization.FRENCH , Location.MTL);
+		mtlManager1.createTRecord("Teacher1", "Teacher1", "ABC street", "123-456-7890", Specialization.FRENCH , Location.MTL);
+		mtlManager2.createSRecord("Student2", "Student2", Course.MATHS, Status.INACTIVE, "2017-May-1");
+		mtlManager2.createTRecord("Teacher2", "Teacher2", "ABC street", "123-456-7890", Specialization.MATHS , Location.MTL);
 		
 		lvlManager1.createSRecord("Student3", "Student3", Course.FRENCH, Status.ACTIVE, "2017-May-1");
-		lvlManager1.createTRecord("Teacher3", "Teacher3", "ABC", "123", Specialization.FRENCH , Location.LVL);
-		lvlManager2.createSRecord("Student4", "Student2", Course.FRENCH, Status.ACTIVE, "2017-May-1");
-		lvlManager2.createTRecord("Teacher4", "Teacher2", "ABC", "123", Specialization.FRENCH , Location.LVL);
+		lvlManager1.createTRecord("Teacher3", "Teacher3", "ABC street", "123-456-7890", Specialization.SCIENCE , Location.LVL);
+		lvlManager2.createSRecord("Student4", "Student2", Course.SCIENCE, Status.ACTIVE, "2017-May-1");
+		lvlManager2.createTRecord("Teacher4", "Teacher2", "ABC street", "123-456-7890", Specialization.FRENCH , Location.LVL);
 		
 		ddoManager1.createSRecord("Student5", "Student5", Course.FRENCH, Status.ACTIVE, "2017-May-1");
-		ddoManager1.createTRecord("Teacher5", "Teacher5", "ABC", "123", Specialization.FRENCH , Location.DDO);
+		ddoManager1.createTRecord("Teacher5", "Teacher5", "ABC street", "123-456-7890", Specialization.FRENCH , Location.DDO);
 	
+		mtlManager1.getRecordCounts();
+		lvlManager2.getRecordCounts();
+		ddoManager2.getRecordCounts();
+
+		ddoManager1.EditRecord("SR10008", "status date", "2010-01-01");
+		ddoManager1.EditRecord("SR10008", "status", "inactive");
+		ddoManager1.EditRecord("SR10008", "course", "maths");
+		ddoManager1.EditRecord("SR10008", "course", "french");
+		
+		lvlManager1.EditRecord("TR10005", "phone", "098-765-4321");
+		lvlManager1.EditRecord("TR10005", "address", "concordia street");
+		lvlManager1.EditRecord("TR10005", "location", "ddo");
+
+		// test concurrency
 		mtlManager1.getRecordCounts();
 		mtlManager1.EditRecord("SR10000", "status date", "2010-01-01");
 		mtlManager3.createSRecord("Student6", "Student6", Course.MATHS, Status.ACTIVE, "2017-May-1");
 		mtlManager2.EditRecord("SR10000", "course", "MATHS");
+		mtlManager3.EditRecord("SR10000", "status", "INACTIVE");
+
 		
 		lvlManager2.getRecordCounts();
 		lvlManager1.EditRecord("SR10004", "status date", "2010-01-01");
-		lvlManager2.EditRecord("TR10005", "address", "SCIENCE");
+		lvlManager2.EditRecord("TR10007", "address", "SCIENCE street");
 		
-		ddoManager2.getRecordCounts();
 		ddoManager1.EditRecord("SR10008", "status date", "2010-01-01");
 		ddoManager2.createSRecord("Student3", "Student3", Course.FRENCH, Status.ACTIVE, "2017-May-1");
+		ddoManager2.getRecordCounts();
+
 		/*
 		// TUI menu
 	try{

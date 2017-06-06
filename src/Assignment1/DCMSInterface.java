@@ -3,6 +3,7 @@ package Assignment1;
 import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.concurrent.ExecutionException;
 
 import Assignment1.PublicParamters.*;
 
@@ -19,7 +20,7 @@ public interface DCMSInterface extends Remote{
 	public String createSRecord(String firstName, String lastName, Course course, 
 			Status status, String statusdate) throws IOException, RemoteException;
 	
-	public String getRecordCounts() throws IOException, RemoteException;
+	public String getRecordCounts() throws IOException, RemoteException, InterruptedException, ExecutionException;
 	
 	public String EditRecord(String recordID, String fieldName, String newValue) throws IOException, RemoteException;	
 
