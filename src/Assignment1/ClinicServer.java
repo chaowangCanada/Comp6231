@@ -312,11 +312,9 @@ public class ClinicServer extends UnicastRemoteObject implements DCMSInterface{
 						   else if(RecordInit == 's'){
 							   if(fieldName.equalsIgnoreCase("course")){
 								   newValue = newValue.toUpperCase(); // course, status are all upper case
-								   if(((StudentRecord)record).findCourse(newValue))
-									   ((StudentRecord)record).addCourse(newValue);
-								   else
-									   ((StudentRecord)record).removeCourse(newValue);
-				        	  		return recordID+"'s course is changed to "+((StudentRecord)record).getCourse();
+								   // if course are already in the list, remove course, else add course
+								   ((StudentRecord)record).editCourse(newValue);
+								   return recordID+"'s course is changed to "+((StudentRecord)record).getCourse();
 							   } 
 							   else if(fieldName.equalsIgnoreCase("status")){
 								   newValue = newValue.toUpperCase(); // course, status are all upper case

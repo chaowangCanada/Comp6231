@@ -2,6 +2,9 @@ package Assignment1;
 
 import java.io.IOException;
 import java.rmi.NotBoundException;
+import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Scanner;
 
 import Assignment1.PublicParamters.*;
 
@@ -20,6 +23,7 @@ public class ClientRunner {
 		
 		ManagerClient mtlManager1 = new ManagerClient(Location.MTL);
 		ManagerClient mtlManager2 = new ManagerClient(Location.MTL);
+		ManagerClient mtlManager3 = new ManagerClient(Location.MTL);
 		ManagerClient lvlManager1 = new ManagerClient(Location.LVL);
 		ManagerClient lvlManager2 = new ManagerClient(Location.LVL);
 		ManagerClient ddoManager1 = new ManagerClient(Location.DDO);
@@ -30,33 +34,28 @@ public class ClientRunner {
 		mtlManager2.createSRecord("Student2", "Student2", Course.FRENCH, Status.ACTIVE, "2017-May-1");
 		mtlManager2.createTRecord("Teacher2", "Teacher2", "ABC", "123", Specialization.FRENCH , Location.MTL);
 		
-		lvlManager1.createSRecord("Student1", "Student", Course.FRENCH, Status.ACTIVE, "2017-May-1");
-		lvlManager1.createTRecord("Teacher1", "Teacher1", "ABC", "123", Specialization.FRENCH , Location.LVL);
-		lvlManager2.createSRecord("Student2", "Student2", Course.FRENCH, Status.ACTIVE, "2017-May-1");
-		lvlManager2.createTRecord("Teacher2", "Teacher2", "ABC", "123", Specialization.FRENCH , Location.LVL);
+		lvlManager1.createSRecord("Student3", "Student3", Course.FRENCH, Status.ACTIVE, "2017-May-1");
+		lvlManager1.createTRecord("Teacher3", "Teacher3", "ABC", "123", Specialization.FRENCH , Location.LVL);
+		lvlManager2.createSRecord("Student4", "Student2", Course.FRENCH, Status.ACTIVE, "2017-May-1");
+		lvlManager2.createTRecord("Teacher4", "Teacher2", "ABC", "123", Specialization.FRENCH , Location.LVL);
 		
-		ddoManager1.createSRecord("Student", "Student", Course.FRENCH, Status.ACTIVE, "2017-May-1");
-		ddoManager1.createTRecord("Teacher", "Teacher", "ABC", "123", Specialization.FRENCH , Location.DDO);
-		ddoManager2.createSRecord("Student", "Student", Course.FRENCH, Status.ACTIVE, "2017-May-1");
-		ddoManager2.createTRecord("Teacher", "Teacher", "ABC", "123", Specialization.FRENCH , Location.DDO);
-		
-		
+		ddoManager1.createSRecord("Student5", "Student5", Course.FRENCH, Status.ACTIVE, "2017-May-1");
+		ddoManager1.createTRecord("Teacher5", "Teacher5", "ABC", "123", Specialization.FRENCH , Location.DDO);
+	
 		mtlManager1.getRecordCounts();
-		mtlManager2.getRecordCounts();
 		mtlManager1.EditRecord("SR10000", "status date", "2010-01-01");
-		mtlManager2.EditRecord("TR10001", "address", "SCIENCE");
+		mtlManager3.createSRecord("Student6", "Student6", Course.MATHS, Status.ACTIVE, "2017-May-1");
+		mtlManager2.EditRecord("SR10000", "course", "MATHS");
 		
-		lvlManager1.getRecordCounts();
 		lvlManager2.getRecordCounts();
 		lvlManager1.EditRecord("SR10004", "status date", "2010-01-01");
 		lvlManager2.EditRecord("TR10005", "address", "SCIENCE");
 		
-		ddoManager1.getRecordCounts();
 		ddoManager2.getRecordCounts();
 		ddoManager1.EditRecord("SR10008", "status date", "2010-01-01");
 		ddoManager2.createSRecord("Student3", "Student3", Course.FRENCH, Status.ACTIVE, "2017-May-1");
-
-		/* TUI menu
+		/*
+		// TUI menu
 	try{
 		int userChoice=0;
 		String userInput="";
@@ -207,7 +206,6 @@ public class ClientRunner {
 					System.out.println("Have a nice day!");
 					keyboard.close();
 					client.writeToLog("Manager exit");
-					client.log.exists();
 					System.exit(0);
 				default:
 					System.out.println("Invalid Input, please try again.");
