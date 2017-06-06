@@ -187,35 +187,44 @@ public class CenterServer extends UnicastRemoteObject implements DCMSInterface{
 		if(ServerRunner.serverList.size() ==1 ){
 			return output;
 		}
-		// send request using multi threading
+		// send request using multi threading. use Callable (similar to runnerable)
 		else{
-			ExecutorService pool = Executors.newFixedThreadPool(ServerRunner.serverList.size()-1);
+			//	newFixedThreadPool it self is thread joinable 
+			ExecutorService pool = Executors.newFixedThreadPool(ServerRunner.serverList.size()-1); //self server no need to add
 			List<Future<String>> requestArr = new ArrayList<Future<String>>();
 			for(CenterServer server : ServerRunner.serverList){
 				if(server.getLocation() !=this.getLocation()){
-					Future<String> request = pool.submit(new RecordCountRequest(this));
+					// future:  an asynchronous computation
+					// submit: creating and returning a Future that can be used to cancel execution and/or wait for completion
+					Future<String> request = pool.submit(new RecordCountRequest(server));
 					requestArr.add(request);
 				}
-			
 			}
-			
+			// till now thread are all executed
 			for(int i = 0 ; i < requestArr.size(); i++){
+				// The Future result can only be retrieved using method get when the computation has completed, blocking if necessary until it is ready
 				output += requestArr.get(i).get();
 			}
 			pool.shutdown();
 		}
 		// send request one by one, no threading
-//		for(ClinicServer server : ServerRunner.serverList){
-//			if(server.getLocation() !=this.getLocation()){
-//				output += server.getLocation().toString() + " " + requestRecordCounts(server) + ",";
-//			}
-//		}
-//		
+		/*
+		for(ClinicServer server : ServerRunner.serverList){
+			if(server.getLocation() !=this.getLocation()){
+				output += server.getLocation().toString() + " " + requestRecordCounts(server) + ",";
+			}
+		}
+		*/		
 		return output;
 	}
 	
 
-
+	/**
+	 * thread to request record count
+	 * @author Chao
+	 */
+	// The Callable interface is similar to Runnable, in that both are designed for classes whose instances are potentially executed by another thread. 
+	// A Runnable, however, does not return a result and cannot throw a checked exception. 
 	private class RecordCountRequest implements Callable<String>{
 		
 		private CenterServer server;
@@ -243,7 +252,7 @@ public class CenterServer extends UnicastRemoteObject implements DCMSInterface{
 				aSocket.receive(reply);
 				server.writeToLog("Receive UDP reply from "+ server.getLocation().toString());
 				String str = new String(reply.getData(), reply.getOffset(),reply.getLength());
-
+				str = server.getLocation().toString() + " " + str + ", ";
 				return str;
 			}
 			catch (SocketException e){
