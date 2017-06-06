@@ -6,15 +6,15 @@ import Assignment1.PublicParamters.Location;
 
 public class ServerRunner {
 
-	public static ArrayList<CenterServer> serverList = new ArrayList<CenterServer>();
+	public static ArrayList<ClinicServer> serverList = new ArrayList<ClinicServer>();
 	
 	
 	public static void main(String args[]){
 		try{
 			
-			CenterServer mtl = new CenterServer(Location.MTL);
-			CenterServer lvl = new CenterServer(Location.LVL);
-			CenterServer ddo = new CenterServer(Location.DDO); 
+			ClinicServer mtl = new ClinicServer(Location.MTL);
+			ClinicServer lvl = new ClinicServer(Location.LVL);
+			ClinicServer ddo = new ClinicServer(Location.DDO); 
 			
 			serverList.add(mtl);
 			serverList.add(lvl);
